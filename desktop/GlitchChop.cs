@@ -1,6 +1,8 @@
 // Glitch Chop desktop shell: a native Windows window hosting the sampler (glitch-chop.html)
 // in WebView2. Everything ships inside the one .exe: the page, the WebView2 SDK assemblies and
-// the native loader are embedded resources, unpacked to %LOCALAPPDATA%\GlitchChop on start.
+// the native loader are embedded resources. The page is served straight from memory, so it never
+// depends on a file on disk being readable; only the loader DLL and the WebView2 profile live in
+// the app's folder under %LOCALAPPDATA%.
 // Written for the C# 5 compiler that ships with .NET Framework 4.x, so no newer syntax.
 using System;
 using System.Diagnostics;
@@ -17,8 +19,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyTitle("Glitch Chop")]
 [assembly: AssemblyProduct("Glitch Chop")]
 [assembly: AssemblyDescription("Vocal chop sampler and glitch melody generator")]
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 namespace GlitchChop
 {
@@ -128,9 +130,6 @@ namespace GlitchChop
         {
             try
             {
-                string site = Path.Combine(Program.AppDir, "app");
-                Directory.CreateDirectory(site);
-                File.WriteAllBytes(Path.Combine(site, "index.html"), Program.ReadRes("index.html"));
 
                 CoreWebView2EnvironmentOptions opts = new CoreWebView2EnvironmentOptions("--autoplay-policy=no-user-gesture-required");
                 CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(Program.AppDir, "WebView2Data"), opts);
@@ -158,7 +157,13 @@ namespace GlitchChop
                         if (e.Uri.StartsWith("https://") || e.Uri.StartsWith("http://")) OpenExternal(e.Uri);
                     }
                 };
-                cw.SetVirtualHostNameToFolderMapping(Host, site, CoreWebView2HostResourceAccessKind.Deny);
+                byte[] page = Program.ReadRes("index.html");
+                cw.AddWebResourceRequestedFilter("https://" + Host + "/*", CoreWebView2WebResourceContext.All);
+                cw.WebResourceRequested += (s, e) =>
+                {
+                    bool isPage = e.Request.Uri.EndsWith("/index.html");
+                    e.Response = env.CreateWebResourceResponse(new MemoryStream(isPage ? page : new byte[0]), isPage ? 200 : 404, isPage ? "OK" : "Not Found", "Content-Type: text/html; charset=utf-8");
+                };
                 cw.Navigate("https://" + Host + "/index.html");
             }
             catch (WebView2RuntimeNotFoundException)

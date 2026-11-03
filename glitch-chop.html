@@ -58,6 +58,9 @@ header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between
 .ctl output{font-family:var(--f-mono);font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
 .ctl input[type=range]{width:100%;accent-color:var(--accent)}
 .ctl select,.ctl input[type=number]{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px;width:100%}
+.ctl.wide{grid-column:1/-1}
+.ctl:has(select){grid-template-columns:92px minmax(0,1fr)}
+.ctl>span:empty{display:none}
 .ctl.check{grid-template-columns:auto 1fr}
 .ctl.check input{accent-color:var(--accent);width:16px;height:16px}
 
@@ -115,7 +118,7 @@ kbd{font-family:var(--f-mono);border:1px solid var(--line);border-bottom-width:2
   <header>
     <div class="brand">
       <h1>GLITCH<span>/</span>CHOP</h1>
-      <p>Load a vocal, slice it up, roll the dice.</p>
+      <p>Load a vocal, slice it up, roll a melody.</p>
     </div>
     <div class="file">
       <div class="file-info" id="fileInfo">Loading demo…</div>
@@ -134,13 +137,13 @@ kbd{font-family:var(--f-mono);border:1px solid var(--line);border-bottom-width:2
     <section class="panel">
       <h2>Chop <em id="chopCount"></em></h2>
       <div class="tabs" role="tablist">
-        <button role="tab" data-mode="grid" aria-selected="true">Grid</button>
+        <button role="tab" data-mode="grid" aria-selected="false">Grid</button>
         <button role="tab" data-mode="trans" aria-selected="false">Transients</button>
-        <button role="tab" data-mode="notes" aria-selected="false">Notes</button>
+        <button role="tab" data-mode="notes" aria-selected="true">Notes</button>
         <button role="tab" data-mode="equal" aria-selected="false">Equal</button>
       </div>
 
-      <div data-panel="grid">
+      <div data-panel="grid" hidden>
         <p class="mode-note">Slices on a musical grid. Set the sample's tempo and meter, or let it fit the BPM to the file length.</p>
         <div class="ctls">
           <div class="ctl"><label for="bpm">Sample BPM</label><input type="range" id="bpm" min="50" max="220" step="0.5" value="96"><output for="bpm"></output></div>
@@ -163,8 +166,8 @@ kbd{font-family:var(--f-mono);border:1px solid var(--line);border-bottom-width:2
         </div>
       </div>
 
-      <div data-panel="notes" hidden>
-        <p class="mode-note">Tracks the pitch of the voice and cuts each time the sung note changes. Each slice is labeled with its note.</p>
+      <div data-panel="notes">
+        <p class="mode-note">Tracks the pitch of the voice and cuts each time the sung note changes. This usually makes the best melodies.</p>
         <div class="ctls">
           <div class="ctl"><label for="minNote">Min note</label><input type="range" id="minNote" min="30" max="400" step="10" value="70"><output for="minNote"></output></div>
           <div class="ctl check"><input type="checkbox" id="dropSil" checked><label for="dropSil">Skip silent and unpitched parts</label></div>
@@ -180,75 +183,111 @@ kbd{font-family:var(--f-mono);border:1px solid var(--line);border-bottom-width:2
     </section>
 
     <section class="panel">
-      <h2>Glitch engine <em id="patInfo"></em></h2>
+      <h2>Melody engine <em id="patInfo"></em></h2>
       <div class="dice">
         <button id="randomize">RANDOMIZE</button>
         <button class="btn" id="play" aria-pressed="false">Play</button>
-        <button class="btn" id="mutate" title="Re-roll about a third of the steps">Mutate</button>
+        <button class="btn" id="mutate" title="Re-write about a third of the notes, keeping the rhythm">Mutate</button>
       </div>
       <div class="grid2">
-        <div class="ctl"><label for="playBpm">Tempo</label><input type="range" id="playBpm" min="50" max="220" value="128"><output for="playBpm"></output></div>
-        <div class="ctl"><label for="steps">Steps</label><select id="steps"><option>8</option><option selected>16</option><option>32</option></select><span></span></div>
-        <div class="ctl"><label for="pitch">Pitch range</label><input type="range" id="pitch" min="0" max="24" value="7"><output for="pitch"></output></div>
-        <div class="ctl"><label for="scale">Scale</label><select id="scale">
-          <option value="chromatic">Chromatic</option><option value="major">Major</option><option value="minor" selected>Minor</option><option value="penta">Pentatonic</option><option value="fifths">Root + 5th</option><option value="octaves">Octaves</option><option value="free">Free (detuned)</option>
+        <div class="ctl wide"><label for="vibe">Vibe</label><select id="vibe">
+          <option value="hook" selected>Vocal hook</option><option value="dream">Dreamy sustain</option><option value="garage">Future garage</option><option value="house">House stabs</option><option value="trap">Trap rolls</option><option value="glitch">Full glitch</option>
         </select><span></span></div>
-        <div class="ctl"><label for="speed">Speed jumps</label><input type="range" id="speed" min="0" max="100" value="20"><output for="speed"></output></div>
-        <div class="ctl"><label for="stutter">Stutter</label><input type="range" id="stutter" min="0" max="100" value="20"><output for="stutter"></output></div>
-        <div class="ctl"><label for="reverse">Reverse</label><input type="range" id="reverse" min="0" max="100" value="15"><output for="reverse"></output></div>
-        <div class="ctl"><label for="rest">Rests</label><input type="range" id="rest" min="0" max="80" value="10"><output for="rest"></output></div>
-        <div class="ctl"><label for="gate">Gate</label><input type="range" id="gate" min="10" max="100" value="85"><output for="gate"></output></div>
-        <div class="ctl"><label for="echo">Echo</label><input type="range" id="echo" min="0" max="100" value="25"><output for="echo"></output></div>
+        <div class="ctl"><label for="key">Key</label><select id="key">
+          <option value="auto" selected>Auto-detect</option><option value="0">C</option><option value="1">C♯</option><option value="2">D</option><option value="3">D♯</option><option value="4">E</option><option value="5">F</option><option value="6">F♯</option><option value="7">G</option><option value="8">G♯</option><option value="9">A</option><option value="10">A♯</option><option value="11">B</option>
+        </select><span></span></div>
+        <div class="ctl"><label for="scale">Scale</label><select id="scale">
+          <option value="auto-penta" selected>Auto pentatonic</option><option value="auto">Auto full scale</option><option value="minor">Minor</option><option value="major">Major</option><option value="pmin">Minor pentatonic</option><option value="pmaj">Major pentatonic</option><option value="dorian">Dorian</option><option value="phrygian">Phrygian</option>
+        </select><span></span></div>
+        <div class="ctl"><label for="groove">Groove</label><select id="groove">
+          <option value="hook">Syncopated hook</option><option value="long">Long notes</option><option value="garage">2-step garage</option><option value="house">Off-beat house</option><option value="trap">Half-time trap</option>
+        </select><span></span></div>
+        <div class="ctl"><label for="bars">Length</label><select id="bars"><option value="1">1 bar</option><option value="2" selected>2 bars</option><option value="4">4 bars</option></select><span></span></div>
+        <div class="ctl"><label for="playBpm">Tempo</label><input type="range" id="playBpm" min="50" max="220" value="104"><output for="playBpm"></output></div>
+        <div class="ctl"><label for="swing">Swing</label><input type="range" id="swing" min="0" max="60" value="8"><output for="swing"></output></div>
+        <div class="ctl"><label for="pitch">Melody range</label><input type="range" id="pitch" min="0" max="24" value="7"><output for="pitch"></output></div>
         <div class="ctl check"><input type="checkbox" id="reroll"><label for="reroll">New pattern every loop</label></div>
       </div>
-      <p class="hint">Pitch shifts are tape-style: higher notes play faster, lower notes slower. Speed jumps make random steps half or double length.</p>
+      <p class="hint">Every chop is tuned from the note it already sings to the note the melody needs. Pitch shifts are tape-style, so higher notes also play faster.</p>
     </section>
   </div>
 
   <section class="panel">
-    <h2>FX rack <em>applied per step, so every hit can sound different</em></h2>
+    <h2>Sound rack <em>Sound, Filter and pan change live · the rest apply on the next roll</em></h2>
     <div class="rack">
       <div>
+        <h3><i></i>Sustain</h3>
+        <p class="sub">Each chop gets a seamless loop, so notes hold for as long as the melody asks.</p>
+        <div class="ctls">
+          <div class="ctl"><label for="sustain">Note length</label><input type="range" id="sustain" min="0" max="100" value="85"><output for="sustain"></output></div>
+          <div class="ctl"><label for="release">Release</label><input type="range" id="release" min="10" max="1500" step="10" value="160"><output for="release"></output></div>
+          <div class="ctl"><label for="vib">Vibrato</label><input type="range" id="vib" min="0" max="100" value="20"><output for="vib"></output></div>
+          <div class="ctl"><label for="verb">Reverb</label><input type="range" id="verb" min="0" max="100" value="22"><output for="verb"></output></div>
+          <div class="ctl"><label for="echo">Echo</label><input type="range" id="echo" min="0" max="100" value="15"><output for="echo"></output></div>
+        </div>
+      </div>
+      <div>
+        <h3><i></i>Layers</h3>
+        <p class="sub">Harmony stacks a second voice on held notes. Choir holds the chords underneath. Beat adds a simple drum kit in the groove.</p>
+        <div class="ctls">
+          <div class="ctl"><label for="harm">Harmony</label><input type="range" id="harm" min="0" max="100" value="20"><output for="harm"></output></div>
+          <div class="ctl"><label for="pad">Choir</label><input type="range" id="pad" min="0" max="100" value="22"><output for="pad"></output></div>
+          <div class="ctl"><label for="beat">Beat</label><input type="range" id="beat" min="0" max="100" value="0"><output for="beat"></output></div>
+        </div>
+      </div>
+      <div>
+        <h3><i></i>Glitch</h3>
+        <p class="sub">Chaos breaks the rules: wrong chops, wrong notes, detuning. Turn it up to get the old madness back.</p>
+        <div class="ctls">
+          <div class="ctl"><label for="chaos">Chaos</label><input type="range" id="chaos" min="0" max="100" value="5"><output for="chaos"></output></div>
+          <div class="ctl"><label for="speed">Speed jumps</label><input type="range" id="speed" min="0" max="100" value="10"><output for="speed"></output></div>
+          <div class="ctl"><label for="stutter">Stutter</label><input type="range" id="stutter" min="0" max="100" value="12"><output for="stutter"></output></div>
+          <div class="ctl"><label for="reverse">Reverse</label><input type="range" id="reverse" min="0" max="100" value="6"><output for="reverse"></output></div>
+          <div class="ctl"><label for="rest">Rests</label><input type="range" id="rest" min="0" max="80" value="5"><output for="rest"></output></div>
+        </div>
+      </div>
+      <div>
         <h3><i></i>Filter</h3>
-        <p class="sub">A resonant filter on every hit. Jitter moves the cutoff per step; Sweep makes each hit zap down from bright to the cutoff.</p>
+        <p class="sub">A resonant filter on every hit. Jitter moves the cutoff per note; Sweep makes each hit zap from bright down to the cutoff.</p>
         <div class="ctls">
           <div class="ctl"><label for="fType">Type</label><select id="fType">
-            <option value="off">Off</option><option value="lowpass" selected>Low-pass</option><option value="highpass">High-pass</option><option value="bandpass">Band-pass</option>
+            <option value="off" selected>Off</option><option value="lowpass">Low-pass</option><option value="highpass">High-pass</option><option value="bandpass">Band-pass</option>
           </select><span></span></div>
           <div class="ctl"><label for="fCut">Cutoff</label><input type="range" id="fCut" min="0" max="100" value="78"><output for="fCut"></output></div>
           <div class="ctl"><label for="fQ">Resonance</label><input type="range" id="fQ" min="0.5" max="24" step="0.5" value="6"><output for="fQ"></output></div>
-          <div class="ctl"><label for="fRand">Jitter</label><input type="range" id="fRand" min="0" max="100" value="40"><output for="fRand"></output></div>
-          <div class="ctl"><label for="fSweep">Sweep</label><input type="range" id="fSweep" min="0" max="100" value="25"><output for="fSweep"></output></div>
+          <div class="ctl"><label for="fRand">Jitter</label><input type="range" id="fRand" min="0" max="100" value="0"><output for="fRand"></output></div>
+          <div class="ctl"><label for="fSweep">Sweep</label><input type="range" id="fSweep" min="0" max="100" value="0"><output for="fSweep"></output></div>
         </div>
       </div>
       <div>
         <h3><i></i>Bitcrusher</h3>
-        <p class="sub">Drops bit depth and sample rate for that broken-sampler grit. Chance sets how many steps get crushed.</p>
+        <p class="sub">Drops bit depth and sample rate for that broken-sampler grit. Chance sets how many notes get crushed.</p>
         <div class="ctls">
           <div class="ctl"><label for="cBits">Bits</label><input type="range" id="cBits" min="2" max="12" value="5"><output for="cBits"></output></div>
           <div class="ctl"><label for="cRate">Downsample</label><input type="range" id="cRate" min="1" max="40" value="10"><output for="cRate"></output></div>
-          <div class="ctl"><label for="cChance">Chance</label><input type="range" id="cChance" min="0" max="100" value="20"><output for="cChance"></output></div>
+          <div class="ctl"><label for="cChance">Chance</label><input type="range" id="cChance" min="0" max="100" value="0"><output for="cChance"></output></div>
         </div>
       </div>
       <div>
         <h3><i></i>Motion</h3>
-        <p class="sub">Glides bend a hit's pitch up or down while it plays, and some become tape stops. Pan throws hits around the stereo field.</p>
+        <p class="sub">Slides scoop into a note from the one before, like a singer. Bends and tape stops warp a note as it plays. Pan spreads hits across the stereo field.</p>
         <div class="ctls">
-          <div class="ctl"><label for="gChance">Glide chance</label><input type="range" id="gChance" min="0" max="100" value="15"><output for="gChance"></output></div>
-          <div class="ctl"><label for="gRange">Glide range</label><input type="range" id="gRange" min="1" max="24" value="12"><output for="gRange"></output></div>
-          <div class="ctl"><label for="pan">Pan spread</label><input type="range" id="pan" min="0" max="100" value="35"><output for="pan"></output></div>
+          <div class="ctl"><label for="slide">Slides</label><input type="range" id="slide" min="0" max="100" value="25"><output for="slide"></output></div>
+          <div class="ctl"><label for="gChance">Bend chance</label><input type="range" id="gChance" min="0" max="100" value="0"><output for="gChance"></output></div>
+          <div class="ctl"><label for="gRange">Bend range</label><input type="range" id="gRange" min="1" max="24" value="12"><output for="gRange"></output></div>
+          <div class="ctl"><label for="pan">Pan spread</label><input type="range" id="pan" min="0" max="100" value="15"><output for="pan"></output></div>
         </div>
       </div>
     </div>
   </section>
 
   <section class="panel">
-    <h2>Chops <em>click to play · ● toggles it in the random pool</em></h2>
+    <h2>Chops <em>click to play · ● toggles it in the melody pool</em></h2>
     <div class="pads" id="pads"></div>
   </section>
 
   <section class="panel">
-    <h2>Pattern <em>click a step to re-roll it</em></h2>
+    <h2>Melody <em>click a note to re-roll it · ~ slide · + harmony · # crushed · ◂ reversed</em></h2>
     <div class="strip-wrap"><div class="strip" id="strip"></div></div>
   </section>
 
@@ -274,8 +313,8 @@ const SCALES = {chromatic:[0,1,2,3,4,5,6,7,8,9,10,11], major:[0,2,4,5,7,9,11], m
 const NOTES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const noteName = m => NOTES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
 
-const S = {buffer:null, rev:null, crush:null, crushRev:null, mono:null, name:'', chops:[], enabled:new Set(), mode:'grid',
-  pattern:[], range:7, playing:false, active:-1, activeStep:-1, events:[], sources:[], peaks:null, dirty:true};
+const S = {buffer:null, mono:null, track:null, key:null, gen:null, name:'', chops:[], enabled:new Set(), mode:'notes',
+  pattern:[], total:16, cellAt:{}, padAt:{}, drums:{}, playing:false, active:-1, activeStep:-1, events:[], sources:[], peaks:null, dirty:true};
 
 /* ---------- toast ---------- */
 let toastT;
@@ -290,12 +329,34 @@ function ac(){
 }
 function makeFX(c){
   const input=c.createGain(), dry=c.createGain(), delay=c.createDelay(3), fb=c.createGain(), tone=c.createBiquadFilter(), wet=c.createGain();
-  const comp=c.createDynamicsCompressor(); comp.threshold.value=-12; comp.ratio.value=4; comp.attack.value=0.003; comp.release.value=0.15;
+  const verb=c.createConvolver(), verbWet=c.createGain(), drums=c.createGain();
+  const comp=c.createDynamicsCompressor(); comp.threshold.value=-14; comp.ratio.value=4; comp.attack.value=0.004; comp.release.value=0.16;
   tone.type='lowpass'; tone.frequency.value=3800;
+  verb.buffer=impulse(c);
   input.connect(dry).connect(comp);
   input.connect(delay); delay.connect(tone); tone.connect(fb).connect(delay); tone.connect(wet).connect(comp);
+  input.connect(verb); verb.connect(verbWet).connect(comp);
+  drums.connect(comp);
   comp.connect(c.destination);
-  const fx={input, delay, fb, wet}; applyFX(fx); return fx;
+  const noise=c.createBuffer(1, c.sampleRate, c.sampleRate), nd=noise.getChannelData(0);
+  for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+  const fx={input, delay, fb, wet, verbWet, drums, noise}; applyFX(fx); return fx;
+}
+// A dark 2.4 s noise tail. It has to match each context's sample rate, so it's built per rate.
+const irCache={};
+function impulse(c){
+  const sr=c.sampleRate;
+  if(irCache[sr]) return irCache[sr];
+  const n=Math.floor(sr*2.4), b=c.createBuffer(2,n,sr);
+  for(let ch=0;ch<2;ch++){
+    const d=b.getChannelData(ch); let lp=0;
+    for(let i=0;i<n;i++){
+      const x=i/n, a=0.12+0.5*Math.pow(1-x,2);          // the tail gets darker as it decays
+      lp+=a*((Math.random()*2-1)-lp);
+      d[i]=lp*Math.pow(1-x,3)*(i<sr*0.012?i/(sr*0.012):1);
+    }
+  }
+  return irCache[sr]=b;
 }
 function applyFX(fx){
   if(!fx) return; const e=v('echo')/100;
@@ -303,36 +364,100 @@ function applyFX(fx){
   // glide to new values so moving a slider mid-loop doesn't click or zipper
   fx.wet.gain.setTargetAtTime(e*0.75, now, 0.03); fx.fb.gain.setTargetAtTime(0.2+e*0.4, now, 0.03);
   fx.delay.delayTime.setTargetAtTime(Math.min(2.9, 60/v('playBpm')*0.75), now, 0.08);
+  fx.verbWet.gain.setTargetAtTime(v('verb')/100*1.1, now, 0.03);
 }
 
-/* ---------- bitcrusher: pre-rendered crushed copies of the sample ---------- */
-function makeCrush(){
-  if(!S.buffer) return;
-  const bits=v('cBits'), hold=v('cRate'), lv=Math.pow(2,bits-1), b=S.buffer;
-  const mk=()=>new AudioBuffer({length:b.length, numberOfChannels:b.numberOfChannels, sampleRate:b.sampleRate});
-  const cr=mk(), crr=mk();
-  for(let ch=0; ch<b.numberOfChannels; ch++){
-    const d=b.getChannelData(ch), o=cr.getChannelData(ch), r=crr.getChannelData(ch), n=d.length; let h=0;
-    for(let i=0;i<n;i++){ if(i%hold===0) h=Math.round(d[i]*lv)/lv; o[i]=h; }
-    for(let i=0;i<n;i++) r[i]=o[n-1-i];
+/* ---------- bitcrusher: crushed copies of a chop's audio, built when first needed ---------- */
+function crushedCopy(V,buf){
+  if(!V.cc) V.cc=new Map();
+  if(V.cc.has(buf)) return V.cc.get(buf);
+  const bits=v('cBits'), hold=v('cRate'), lv=Math.pow(2,bits-1);
+  const o=new AudioBuffer({length:buf.length, numberOfChannels:buf.numberOfChannels, sampleRate:buf.sampleRate});
+  for(let ch=0; ch<buf.numberOfChannels; ch++){
+    const d=buf.getChannelData(ch), r=o.getChannelData(ch); let h=0;
+    for(let i=0;i<d.length;i++){ if(i%hold===0) h=Math.round(d[i]*lv)/lv; r[i]=h; }
   }
-  S.crush=cr; S.crushRev=crr;
+  V.cc.set(buf,o); return o;
+}
+function clearCrush(){ for(const c of S.chops) if(c.voice) c.voice.cc=null; }
+
+/* ---------- sustain: each chop gets a seamless loop, like a sampler instrument ---------- */
+const median=a=>{ if(!a.length) return 0; const s=[...a].sort((p,q)=>p-q); return s[s.length>>1]; };
+function voiceOf(c){
+  if(c.voice) return c.voice;
+  const B=S.buffer, sr=B.sampleRate, n=Math.max(1,c.e-c.s), x=S.mono.subarray(c.s,c.e);
+  const copy=(len,fn)=>{
+    const o=new AudioBuffer({length:Math.max(1,len), numberOfChannels:B.numberOfChannels, sampleRate:sr});
+    for(let ch=0;ch<B.numberOfChannels;ch++) fn(B.getChannelData(ch).subarray(c.s,c.e), o.getChannelData(ch));
+    return o;
+  };
+  const V={raw:copy(n,(d,o)=>o.set(d)), rev:copy(n,(d,o)=>{ for(let i=0;i<n;i++) o[i]=d[n-1-i]; }), natural:n/sr, loop:null, cc:null};
+  c.voice=V;
+  const minLoop=Math.round(0.015*sr);
+  if(n<minLoop*3) return V;
+  // Find the steady part of the sound: past the attack, before the fade.
+  const block=Math.round(0.01*sr), env=[];
+  for(let i=0;i+block<=n;i+=block){ let s=0; for(let j=0;j<block;j++) s+=x[i+j]*x[i+j]; env.push(Math.sqrt(s/block)); }
+  const med=median(env);
+  let atk=env.findIndex(e=>e>=med*0.7); if(atk<0) atk=0;
+  let dec=env.length-1; while(dec>0 && env[dec]<med*0.6) dec--;
+  let lo=Math.max(Math.floor(n*0.12), atk*block), hi=Math.min(n,(dec+1)*block);
+  if(hi-lo<minLoop*1.5){ lo=Math.floor(n*0.1); hi=Math.floor(n*0.92); }
+  // Loop a whole number of pitch periods so the loop point falls in phase with the voice.
+  const P=c.midi!=null ? Math.round(sr/(440*Math.pow(2,(c.midi-69)/12))) : 0;
+  let L=Math.min(hi-lo, Math.round(0.28*sr));
+  if(P>0 && L>=P) L=Math.floor(L/P)*P;
+  const lS=lo+Math.floor((hi-lo-L)/2), W=Math.min(lS, Math.round(0.012*sr)), R=P>0?Math.min(P,Math.round(0.006*sr)):Math.round(0.004*sr);
+  let best=lS+L, score=-Infinity;
+  for(let d=-R;d<=R;d++){
+    const e=lS+L+d; if(e>n || e-lS<minLoop) continue;
+    let s=0; for(let k=1;k<=W;k++) s+=x[lS-k]*x[e-k];
+    if(s>score){ score=s; best=e; }
+  }
+  const X=Math.min(Math.floor((best-lS)*0.4), Math.round(0.05*sr), lS);
+  if(X<8 || best-lS<minLoop) return V;
+  // Crossfade the tail of the loop into the audio just before its start, so the wrap is seamless.
+  V.loop={s:lS/sr, e:best/sr, buf:copy(best,(d,o)=>{
+    o.set(d.subarray(0,best));
+    for(let k=0;k<X;k++){
+      const w=(k+1)/X, a=P>0?1-w:Math.cos(w*Math.PI/2), b=P>0?w:Math.sin(w*Math.PI/2);
+      o[best-X+k]=d[best-X+k]*a+d[lS-X+k]*b;
+    }
+  })};
+  return V;
 }
 
 /* ---------- loading ---------- */
 function setBuffer(buf, name){
   S.buffer=buf; S.name=name;
-  const rev=new AudioBuffer({length:buf.length, numberOfChannels:buf.numberOfChannels, sampleRate:buf.sampleRate});
   const mono=new Float32Array(buf.length);
   for(let ch=0; ch<buf.numberOfChannels; ch++){
-    const d=buf.getChannelData(ch), r=rev.getChannelData(ch), n=d.length;
-    for(let i=0;i<n;i++){ r[i]=d[n-1-i]; mono[i]+=d[i]/buf.numberOfChannels; }
+    const d=buf.getChannelData(ch);
+    for(let i=0;i<d.length;i++) mono[i]+=d[i]/buf.numberOfChannels;
   }
-  S.rev=rev; S.mono=mono; S.peaks=null;
-  makeCrush();
-  $('#fileInfo').innerHTML=`<b></b> · ${buf.duration.toFixed(2)} s · ${buf.sampleRate/1000} kHz`;
+  S.mono=mono; S.peaks=null;
+  S.track=trackPitch(); S.key=detectKey();
+  $('#fileInfo').innerHTML=`<b></b> · ${buf.duration.toFixed(2)} s · ${buf.sampleRate/1000} kHz · sounds like ${NOTES[S.key.root]} ${S.key.minor?'minor':'major'}`;
   $('#fileInfo b').textContent=name;
-  rechop();
+  // Note chopping needs something to track; drums or noise cut better on transients.
+  if(S.mode==='notes' && S.track.voiced<0.2){ setMode('trans'); toast('Little pitch found, so chopping on transients.'); }
+  else rechop();
+}
+// Krumhansl-Schmuckler key finding: compare how long each pitch class sounds against the
+// profile of each major and minor key, and keep the best match.
+function detectKey(){
+  const MJ=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88], MN=[6.33,2.68,3.52,5.38,2.6,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+  const T=S.track, hist=new Array(12).fill(0);
+  for(let i=0;i<T.midi.length;i++) if(!isNaN(T.midi[i])) hist[((Math.round(T.midi[i])%12)+12)%12]+=T.rms[i];
+  if(!hist.some(x=>x>0)) return {root:0, minor:true};
+  const corr=(p,r)=>{
+    const mh=hist.reduce((a,b)=>a+b)/12, mp=p.reduce((a,b)=>a+b)/12; let n=0,dh=0,dp=0;
+    for(let i=0;i<12;i++){ const a=hist[(i+r)%12]-mh, b=p[i]-mp; n+=a*b; dh+=a*a; dp+=b*b; }
+    return n/Math.sqrt(dh*dp||1);
+  };
+  let best={root:0,minor:true}, top=-Infinity;
+  for(let r=0;r<12;r++) for(const [p,minor] of [[MJ,false],[MN,true]]){ const s=corr(p,r); if(s>top){ top=s; best={root:r,minor}; } }
+  return best;
 }
 async function loadFile(f){
   if(!f) return;
@@ -340,8 +465,10 @@ async function loadFile(f){
   try{
     const ab=await f.arrayBuffer();
     const buf=await new OfflineAudioContext(2, 44100, 44100).decodeAudioData(ab);
+    toast('Analyzing pitch and key…');
+    await new Promise(r=>setTimeout(r,30)); // let the message paint before analysis takes over
     setBuffer(buf, f.name);
-    toast('Loaded '+f.name);
+    if(S.track.voiced>=0.2) toast("Loaded "+f.name);
   }catch(e){ toast("Couldn't read that file. Try WAV, MP3, OGG or M4A."); }
 }
 $('#fileIn').addEventListener('change', e=>loadFile(e.target.files[0]));
@@ -417,17 +544,21 @@ function transientSlices(){
   const out=[]; for(let i=0;i<b.length-1;i++) out.push([b[i],b[i+1]]);
   return out;
 }
-function noteSlices(){
+// Pitch-tracks the whole sample once (YIN). Every chop mode reads from this, so any chop
+// knows what note it sings and can be tuned to the melody.
+function trackPitch(){
   const sr=S.buffer.sampleRate, f=Math.max(1,Math.round(sr/11025)), dsr=sr/f;
   const len=Math.floor(S.mono.length/f), x=new Float32Array(len);
   for(let i=0;i<len;i++){ let s=0; for(let j=0;j<f;j++) s+=S.mono[i*f+j]; x[i]=s/f; }
-  const hop=128, W=384, minLag=Math.floor(dsr/1100), maxLag=Math.ceil(dsr/65);
+  const hop=S.buffer.duration>90?256:128, W=384, minLag=Math.floor(dsr/1100), maxLag=Math.ceil(dsr/65);
   const frames=Math.max(0, Math.floor((len-W-maxLag)/hop));
   let mx=0; for(let i=0;i<len;i++) mx=Math.max(mx,Math.abs(x[i]));
-  const gate=mx*0.06, d=new Float32Array(maxLag+1), notes=new Array(frames);
+  const gate=mx*0.06, d=new Float32Array(maxLag+1), midi=new Float32Array(frames).fill(NaN), rms=new Float32Array(frames);
+  let voiced=0, sounding=0;
   for(let fi=0; fi<frames; fi++){
-    const o=fi*hop; let rms=0; for(let j=0;j<W;j++) rms+=x[o+j]*x[o+j]; rms=Math.sqrt(rms/W);
-    if(rms<gate){ notes[fi]=null; continue; }
+    const o=fi*hop; let e=0; for(let j=0;j<W;j++) e+=x[o+j]*x[o+j]; e=Math.sqrt(e/W); rms[fi]=e;
+    if(e<gate) continue;
+    sounding++;
     let run=0; d[0]=1;
     for(let tau=1;tau<=maxLag;tau++){
       let s=0; for(let j=0;j<W;j++){ const q=x[o+j]-x[o+j+tau]; s+=q*q; }
@@ -435,13 +566,18 @@ function noteSlices(){
     }
     let tau=-1;
     for(let t=minLag;t<maxLag;t++){ if(d[t]<0.18){ while(t+1<maxLag && d[t+1]<d[t]) t++; tau=t; break; } }
-    if(tau<0){ notes[fi]=null; continue; }
+    if(tau<1) continue;
     const a=d[tau-1], b=d[tau], c=d[tau+1], den=a-2*b+c, p=den? tau+0.5*(a-c)/den : tau;
-    notes[fi]=Math.round(69+12*Math.log2(dsr/p/440));
+    midi[fi]=69+12*Math.log2(dsr/p/440); voiced++;
   }
+  const vals=[]; for(let i=0;i<frames;i++) if(!isNaN(midi[i])) vals.push(midi[i]);
+  return {midi, rms, hopSec:hop/dsr, off:W/2/dsr, voiced:sounding?voiced/sounding:0, center:vals.length?Math.round(median(vals)):60};
+}
+function noteSlices(){
+  const T=S.track, notes=Array.from(T.midi, m=>isNaN(m)?null:Math.round(m));
   // median smooth
   const sm=notes.map((_,i)=>{ const w=[]; for(let k=-2;k<=2;k++){ const q=notes[i+k]; if(q!==undefined) w.push(q===null?-1:q); } w.sort((p,q)=>p-q); const m=w[w.length>>1]; return m<0?null:m; });
-  const hopSec=hop/dsr, minF=Math.max(1,Math.round(v('minNote')/1000/hopSec)), off=W/2/dsr;
+  const hopSec=T.hopSec, minF=Math.max(1,Math.round(v('minNote')/1000/hopSec)), off=T.off;
   // segments of equal note, merging runs shorter than minF into the previous segment
   const segs=[];
   for(let i=0;i<sm.length;){
@@ -455,24 +591,46 @@ function noteSlices(){
   for(const s of merged){
     if(s.n===null && $('#dropSil').checked) continue;
     const a=Math.max(0, s.s*hopSec+off-0.01), b=Math.min(dur, s.e*hopSec+off);
-    if(b-a>0.02) out.push([a,b, s.n===null?'—':noteName(s.n), s.n]);
+    if(b-a>0.02) out.push([a,b]);
   }
-  return out.length ? out : [[0,dur,'—',null]];
+  return out.length ? out : [[0,dur]];
+}
+// Trims silence off a chop and works out its loudness and the note it sings.
+function analyzeChop(c){
+  const x=S.mono, sr=S.buffer.sampleRate, T=S.track, a=Math.floor(c.start*sr), b=Math.min(x.length,Math.ceil(c.end*sr));
+  let peak=0, sum=0;
+  for(let i=a;i<b;i++){ const q=Math.abs(x[i]); if(q>peak) peak=q; sum+=q*q; }
+  c.rms=Math.sqrt(sum/Math.max(1,b-a));
+  const thr=peak*0.1; let i=a, j=b-1;
+  while(i<b && Math.abs(x[i])<thr) i++;
+  while(j>i && Math.abs(x[j])<thr*0.6) j--;
+  c.s=Math.max(a,i-Math.round(0.004*sr)); c.e=Math.min(b,j+Math.round(0.01*sr));
+  if(c.e-c.s<0.02*sr){ c.s=a; c.e=b; }
+  const f0=Math.max(0,Math.floor((c.s/sr-T.off)/T.hopSec)), f1=Math.min(T.midi.length,Math.ceil((c.e/sr-T.off)/T.hopSec)), vals=[];
+  for(let f=f0;f<f1;f++) if(!isNaN(T.midi[f])) vals.push(T.midi[f]);
+  c.midi = f1>f0 && vals.length>=2 && vals.length/(f1-f0)>=0.4 ? median(vals) : null;
 }
 function rechop(){
   if(!S.buffer) return;
   const dur=S.buffer.duration;
   let sl = S.mode==='grid' ? gridSlices(dur) : S.mode==='trans' ? transientSlices() : S.mode==='notes' ? noteSlices()
-    : Array.from({length:v('slices')},(_,i,a)=>[i*dur/a.length,(i+1)*dur/a.length]);
+    : Array.from({length:v('slices')},(_,i)=>[i*dur/v('slices'),(i+1)*dur/v('slices')]);
   sl=sl.filter(s=>s[1]-s[0]>=0.02).slice(0,128);
-  S.chops=sl.map(([s,e,label,midi],i)=>({start:s,end:e,label,
-    color: midi!=null ? `hsl(${(midi%12)*30} 78% 68%)` : `hsl(${(i*137.5+20)%360} 72% 68%)`}));
+  S.chops=sl.map(([s,e])=>({start:s,end:e}));
+  S.chops.forEach(analyzeChop);
+  const loudest=Math.max(0,...S.chops.map(c=>c.rms));
+  S.chops.forEach((c,i)=>{
+    c.quiet=c.rms<loudest*0.12;
+    c.label=c.midi!=null?noteName(Math.round(c.midi)):'';
+    c.color=c.midi!=null?`hsl(${((Math.round(c.midi)%12)+12)%12*30} 78% 68%)`:`hsl(${(i*137.5+20)%360} 72% 68%)`;
+  });
   S.enabled=new Set(S.chops.map((_,i)=>i));
   const avg=S.chops.reduce((a,c)=>a+c.end-c.start,0)/Math.max(1,S.chops.length);
   $('#chopCount').textContent=`${S.chops.length} slices`;
   $('#chopStats').textContent=`${S.chops.length} slices · avg ${Math.round(avg*1000)} ms`;
   renderPads();
-  if(S.pattern.length) genPattern();
+  if(!S.chops.length){ S.pattern=[]; S.cellAt={}; S.padAt={}; S.drums={}; $('#strip').innerHTML=''; $('#patInfo').textContent=''; toast('That file is too short to chop.'); }
+  else if(S.pattern.length) genPattern();
   S.dirty=true;
 }
 
@@ -494,23 +652,50 @@ $('#pads').addEventListener('click', e=>{
 });
 function audition(i){
   const c=ac(), ch=S.chops[i]; if(!ch) return;
-  const t=c.currentTime+0.01, len=ch.end-ch.start;
-  playChop(c, liveFX.input, t, ch, 1, false, len);
+  const t=c.currentTime+0.01, len=voiceOf(ch).natural;
+  playNote(c, liveFX, t, ch, 1, len, {rel:0.02});
   S.events.push({t, end:t+len, chop:i, step:-1});
 }
 
 /* ---------- playback ---------- */
-// o: {crush, glide:'up'|'down'|'stop', glideSemi, filter:{type,q,f0,f1}, pan}
-function playChop(c, dest, t, ch, rate, rev, len, o={}){
-  const src=c.createBufferSource();
-  src.buffer = o.crush && S.crush ? (rev?S.crushRev:S.crush) : (rev?S.rev:S.buffer);
-  src.playbackRate.setValueAtTime(rate, t);
-  if(o.glide==='stop') src.playbackRate.exponentialRampToValueAtTime(Math.max(0.03, rate*0.06), t+len);
-  else if(o.glide) src.playbackRate.exponentialRampToValueAtTime(rate*Math.pow(2, o.glideSemi/12), t+len);
-  const off=rev ? S.buffer.duration-ch.end : ch.start;
-  const g=c.createGain(), f=Math.min(0.005, len/4);
-  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.9,t+f);
-  g.gain.setValueAtTime(0.9,t+len-f); g.gain.linearRampToValueAtTime(0,t+len);
+const sixteenth = () => 15/v('playBpm');
+const cutoffHz = () => 60*Math.pow(2, v('fCut')/100*8.2);
+const clampHz = f => Math.min(18000, Math.max(40, f));
+const foldSemi = s => { while(s>14) s-=12; while(s<-14) s+=12; return s; };
+function filterFor(cell){
+  const type=$('#fType').value;
+  if(type==='off') return null;
+  // band-pass at high Q turns thin and whistly, so it gets half the resonance
+  const fc=clampHz(cutoffHz()*Math.pow(2, cell.cut*v('fRand')/100*3));
+  return {type, q:v('fQ')/(type==='bandpass'?2:1), f0:clampHz(fc*Math.pow(2, v('fSweep')/100*5)), f1:fc};
+}
+// o: {hold, rev, crush, atk, rel, vel, vib(cents), slide(semitones), glide, glideSemi, filter, pan}
+function playNote(c, fx, t, ch, rate, len, o={}){
+  const V=voiceOf(ch); rate=Math.min(4, Math.max(0.25, rate));
+  const looped=!o.rev && o.hold && V.loop && len*rate>V.natural*0.97;
+  let rel=Math.max(0.008, o.rel ?? 0.02), off=0;
+  if(o.rev){
+    // a reversed chop is a swell: it finishes exactly at the end of its slot
+    const nat=V.natural/rate;
+    if(nat>len) off=(nat-len)*rate; else { t+=len-nat; len=nat; }
+  } else if(!looped){
+    const nat=V.natural/rate;
+    if(len+rel>nat){ rel=Math.min(rel,0.015); len=Math.max(0.006, nat-rel); }
+  }
+  let buf=o.rev?V.rev:looped?V.loop.buf:V.raw;
+  if(o.crush) buf=crushedCopy(V,buf);
+  const src=c.createBufferSource(); src.buffer=buf;
+  if(looped){ src.loop=true; src.loopStart=V.loop.s; src.loopEnd=V.loop.e; }
+  const pr=src.playbackRate, end=t+len+rel;
+  if(o.slide){ pr.setValueAtTime(rate*Math.pow(2,o.slide/12), t); pr.exponentialRampToValueAtTime(rate, t+Math.min(0.09,len*0.4)); }
+  else pr.setValueAtTime(rate, t);
+  if(o.glide && !o.slide){
+    pr.setValueAtTime(rate, t+len*0.35);
+    pr.exponentialRampToValueAtTime(o.glide==='stop' ? Math.max(0.05,rate*0.12) : rate*Math.pow(2,o.glideSemi/12), end);
+  }
+  const vel=o.vel ?? 0.85, atk=Math.min(o.atk ?? 0.006, len*0.5), g=c.createGain();
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vel,t+atk);
+  g.gain.setValueAtTime(vel,t+len); g.gain.linearRampToValueAtTime(0,end);
   let tail=src.connect(g);
   if(o.filter){
     const bq=c.createBiquadFilter(); bq.type=o.filter.type; bq.Q.value=o.filter.q;
@@ -518,39 +703,75 @@ function playChop(c, dest, t, ch, rate, rev, len, o={}){
     if(o.filter.f1!==o.filter.f0) bq.frequency.exponentialRampToValueAtTime(o.filter.f1, t+Math.max(0.02, Math.min(len, 0.35)));
     tail=tail.connect(bq);
   }
-  if(o.pan && c.createStereoPanner){ const p=c.createStereoPanner(); p.pan.value=o.pan; tail=tail.connect(p); }
-  tail.connect(dest); src.start(t, Math.max(0,off)); src.stop(t+len+0.01);
-  return src;
-}
-const stepDur = st => 60/v('playBpm')/4*st.len;
-const cutoffHz = () => 60*Math.pow(2, v('fCut')/100*8.2);
-const clampHz = f => Math.min(18000, Math.max(40, f));
-function hitOpts(st){
-  const o={crush:st.crush, glide:st.glide, glideSemi:st.glideSemi, pan:st.pan*v('pan')/100};
-  const type=$('#fType').value;
-  if(type!=='off'){
-    // band-pass at high Q turns thin and whistly, so it gets half the resonance
-    const fc=clampHz(cutoffHz()*Math.pow(2, st.cut*v('fRand')/100*3));
-    o.filter={type, q:v('fQ')/(type==='bandpass'?2:1), f0:clampHz(fc*Math.pow(2, v('fSweep')/100*5)), f1:fc};
+  if(o.pan){ const p=c.createStereoPanner(); p.pan.value=o.pan; tail=tail.connect(p); }
+  tail.connect(fx.input);
+  // vibrato fades in after the note has settled, the way a singer does it
+  if(o.vib>0 && src.detune && len>0.22){
+    const lfo=c.createOscillator(), lg=c.createGain(); lfo.frequency.value=5.3;
+    lg.gain.setValueAtTime(0,t+0.12); lg.gain.linearRampToValueAtTime(o.vib,t+Math.min(0.35,len));
+    lfo.connect(lg).connect(src.detune); lfo.start(t); lfo.stop(end+0.02);
   }
-  return o;
+  src.start(t, off); src.stop(end+0.02);
+  return {src, g, t, end:t+len};
 }
-function scheduleStep(c, dest, t, st, live, idx){
-  const d=stepDur(st), ch=S.chops[st.chop];
-  if(!st.rest && ch){
-    const rate=Math.pow(2,st.semi/12), sub=d/st.ratchet, gate=v('gate')/100, natural=(ch.end-ch.start)/rate, o=hitOpts(st);
-    for(let r=0;r<st.ratchet;r++){
-      const tt=t+r*sub, len=Math.max(0.012, gate>=1 ? Math.min(natural, st.ratchet>1?sub:sub*4) : Math.min(natural, sub*gate));
-      const src=playChop(c,dest,tt,ch,rate,st.rev,len,o);
-      if(live){ S.sources.push(src); src.onended=()=>{ const k=S.sources.indexOf(src); if(k>=0) S.sources.splice(k,1); };
-        S.events.push({t:tt, end:tt+len, chop:st.chop, step:idx}); }
+function track(h){
+  S.sources.push(h);
+  h.src.onended=()=>{ const k=S.sources.indexOf(h); if(k>=0) S.sources.splice(k,1); };
+}
+function playCell(c, fx, t, i, live){
+  const cell=S.pattern[i], ch=S.chops[cell.chop], slot=cell.len*sixteenth();
+  if(cell.rest || !ch){ if(live) S.events.push({t, end:t+slot, chop:-1, step:i}); return; }
+  const rate=Math.pow(2,(cell.semi+(cell.detune||0))/12), sus=v('sustain')/100, pan=cell.pan*v('pan')/100;
+  const base={crush:cell.crush, filter:filterFor(cell), pan, vel:cell.vel}, out=[];
+  if(cell.ratchet>1){
+    const sub=slot/cell.ratchet;
+    for(let r=0;r<cell.ratchet;r++) out.push(playNote(c,fx,t+r*sub,ch,rate,sub*0.72,{...base, rel:0.012, vel:cell.vel*(0.65+0.35*r/(cell.ratchet-1))}));
+  } else if(cell.rev){
+    out.push(playNote(c,fx,t,ch,rate,slot*0.98,{...base, rev:true, atk:Math.min(0.18,slot*0.6), rel:0.015}));
+  } else {
+    const len=slot*(0.35+0.65*sus);
+    const o={...base, hold:sus>0, rel:v('release')/1000, vib:v('vib')/100*32, slide:cell.slide, glide:cell.glide, glideSemi:cell.glideSemi};
+    out.push(playNote(c,fx,t,ch,rate,len,o));
+    if(cell.harm) out.push(playNote(c,fx,t,ch,rate*Math.pow(2,cell.harm/12),len,{...o, vel:cell.vel*0.5, pan:-pan, slide:0, glide:null}));
+  }
+  if(live) out.forEach(h=>{ track(h); S.events.push({t:h.t, end:h.end, chop:cell.chop, step:i}); });
+}
+function playPad(c, fx, t, p, live){
+  const ch=S.chops[p.chop]; if(!ch) return;
+  const vel=v('pad')/100*0.38, len=p.len*sixteenth()*0.98, from=ch.midi ?? S.gen.center;
+  p.midis.forEach((m,k)=>{
+    const h=playNote(c,fx,t,ch,Math.pow(2,foldSemi(m-from)/12),len,
+      {hold:true, atk:0.12, rel:0.35, vel, vib:8, pan:[-0.4,0,0.4][k], filter:{type:'lowpass', q:0.7, f0:2200, f1:2200}});
+    if(live) track(h);
+  });
+}
+function playDrums(c, fx, t, hits){
+  if(!hits) return;
+  const lvl=v('beat')/100;
+  for(const kind of hits){
+    if(kind==='k'){
+      const o=c.createOscillator(), g=c.createGain(); o.type='sine';
+      o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(46,t+0.09);
+      g.gain.setValueAtTime(lvl,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.24);
+      o.connect(g).connect(fx.drums); o.start(t); o.stop(t+0.26);
+    } else {
+      const snare=kind==='s', s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(), d=snare?0.16:0.045;
+      s.buffer=fx.noise; f.type=snare?'bandpass':'highpass'; f.frequency.value=snare?1900:8000; f.Q.value=snare?0.8:0.7;
+      g.gain.setValueAtTime(lvl*(snare?0.7:0.22),t); g.gain.exponentialRampToValueAtTime(0.001,t+d);
+      s.connect(f).connect(g).connect(fx.drums); s.start(t, Math.random()*0.5); s.stop(t+d+0.01);
     }
-  } else if(live) S.events.push({t, end:t+d, chop:-1, step:idx});
-  return d;
+  }
+}
+// One call per 16th note, so tempo and swing changes land on the very next step.
+function scheduleGrid(c, fx, t, g, live){
+  const tt=t+(g%2 ? v('swing')/100*sixteenth()*0.6 : 0);
+  const i=S.cellAt[g]; if(i!==undefined) playCell(c,fx,tt,i,live);
+  const p=S.padAt[g]; if(p && v('pad')>0) playPad(c,fx,tt,p,live);
+  if(v('beat')>0) playDrums(c,fx,tt,S.drums[g]);
 }
 // The scheduler ticks from a Worker: timers on the page itself get throttled to 1/s in a
 // background tab, which made playback stutter as soon as you switched windows.
-let timer=null, nextTime=0, stepIdx=0, clock=null;
+let timer=null, nextTime=0, gridPos=0, clock=null;
 try{
   clock=new Worker(URL.createObjectURL(new Blob(['let i;onmessage=e=>{clearInterval(i);if(e.data)i=setInterval(()=>postMessage(0),e.data)}'],{type:'text/javascript'})));
   clock.onmessage=()=>{ if(S.playing) tick(); };
@@ -560,86 +781,219 @@ function tick(){
   if(c.currentTime-nextTime>0.5) nextTime=c.currentTime+0.05; // resync after a long stall instead of machine-gunning missed steps
   S.events=S.events.filter(ev=>ev.end>c.currentTime-0.5);
   while(nextTime < c.currentTime+0.15){
-    if(stepIdx>=S.pattern.length){ stepIdx=0; if($('#reroll').checked) genPattern(); }
-    nextTime+=scheduleStep(c, liveFX.input, nextTime, S.pattern[stepIdx], true, stepIdx);
-    stepIdx++;
+    if(gridPos>=S.total){ gridPos=0; if($('#reroll').checked) genPattern(); }
+    scheduleGrid(c, liveFX, nextTime, gridPos, true);
+    nextTime+=sixteenth(); gridPos++;
   }
 }
 function start(){
   const c=ac(); if(!S.buffer) return;
   if(!S.pattern.length && !genPattern()) return;
   if(S.playing) return;
-  S.playing=true; nextTime=c.currentTime+0.06; stepIdx=0;
+  S.playing=true; nextTime=c.currentTime+0.06; gridPos=0;
   if(clock) clock.postMessage(25); else timer=setInterval(tick,25);
   tick(); setPlayBtn();
 }
 function stop(){
   if(clock) clock.postMessage(0); clearInterval(timer); S.playing=false;
-  for(const s of S.sources){ try{ s.stop(); }catch(e){} } S.sources=[]; S.events=[];
+  const now=ctx ? ctx.currentTime : 0;
+  // fade rather than cut, so stopping a held note doesn't click
+  for(const h of S.sources){ try{ h.g.gain.cancelScheduledValues(now); h.g.gain.setTargetAtTime(0,now,0.012); h.src.stop(now+0.08); }catch(e){} }
+  S.sources=[]; S.events=[];
   S.active=-1; S.activeStep=-1; setPlayBtn(); S.dirty=true;
 }
 function setPlayBtn(){ const b=$('#play'); b.setAttribute('aria-pressed',S.playing); b.textContent=S.playing?'Stop':'Play'; }
 
-/* ---------- pattern generation ---------- */
+/* ---------- music theory + grooves ---------- */
 const pick = a => a[Math.floor(Math.random()*a.length)];
-function genStep(){
-  const pool=[...S.enabled]; const range=v('pitch'), scale=$('#scale').value;
-  let semi=0;
-  if(range>0){
-    if(scale==='free') semi=(Math.random()*2-1)*range;
-    else { const set=SCALES[scale], c=[]; for(let s=-range;s<=range;s++) if(set.includes(((s%12)+12)%12)) c.push(s); semi=pick(c.length?c:[0]); }
+const chance = pct => Math.random()*100<pct;
+const MAJ=[0,2,4,5,7,9,11], MIN=[0,2,3,5,7,8,10], DOR=[0,2,3,5,7,9,10], PHR=[0,1,3,5,7,8,10], PMIN=[0,3,5,7,10], PMAJ=[0,2,4,7,9];
+const PROGS={minor:[[0,5,2,6],[0,3,5,4],[0,5,3,4],[0,6,5,6]], major:[[0,4,5,3],[0,5,3,4],[0,3,4,3],[5,3,0,4]]};
+// One bar of 16ths per string. x = note, - = hold, . = rest, r = roll. k/s/h = kick, snare, hat.
+const GROOVES={
+  hook:{r:['x--x--x-x--x--x-','x--x--x---x-x---','x-x--x--x--x-x--','x-----x-x--x--x-'], k:'x.....x...x.....', s:'....x.......x...', h:'x.x.x.x.x.x.x.x.'},
+  long:{r:['x-------x-------','x-----------x---','x-----x-------x-','x-------x---x---'], k:'x.......x.......', s:'........x.......', h:'x...x...x...x...'},
+  garage:{r:['x--x-.x-..x-.x-.','x-.x--.x-.x--.x.','.x-x-.x-.x-x-.x.'], k:'x.........x.....', s:'....x.......x...', h:'..x...x...x...x.'},
+  house:{r:['..x-..x-..x-..x-','x-.x-.x-.x-.x-..','..x-.x-...x-.x-.'], k:'x...x...x...x...', s:'....x.......x...', h:'..x...x...x...x.'},
+  trap:{r:['x-----x-x---x-r-','x--x--x-r-x-x---','x---x-x---r-x-x-'], k:'x.....x.x.......', s:'........x.......', h:'x.x.x.x.x.xxx.xx'},
+};
+function parseRhythm(str){
+  const ev=[];
+  for(let i=0;i<16;i++){
+    const ch=str[i], last=ev[ev.length-1];
+    if(ch==='x'||ch==='r') ev.push({s:i, len:1, rest:false, roll:ch==='r'});
+    else if(last && (ch==='-' || last.rest)) last.len++;
+    else ev.push({s:i, len:1, rest:true});
   }
-  return {
-    chop: pool.length? pick(pool) : 0,
-    semi,
-    rev: Math.random()<v('reverse')/100,
-    ratchet: Math.random()<v('stutter')/100 ? pick([2,2,3,4]) : 1,
-    rest: Math.random()<v('rest')/100,
-    len: Math.random()<v('speed')/100 ? pick([0.5,0.5,2]) : 1,
-    // raw randoms scaled live by the FX rack sliders, so moving a slider reshapes the current pattern
-    cut: Math.random()*2-1,
-    pan: Math.random()*2-1,
-    crush: Math.random()<v('cChance')/100,
-    ...glideRoll(),
-  };
+  // Speed jumps: a held note becomes two quicker ones in the same space, so the bar stays a bar
+  return ev.flatMap(e=>{
+    if(e.rest || e.len<2 || !chance(v('speed'))) return [e];
+    const a=Math.ceil(e.len/2);
+    return [{...e,len:a},{s:e.s+a,len:e.len-a,rest:false,roll:false}];
+  });
+}
+function resolveKey(){
+  const kv=$('#key').value, sc=$('#scale').value, root=kv==='auto'?S.key.root:+kv, det=S.key.minor;
+  const table={'auto-penta':[det?MIN:MAJ,det?PMIN:PMAJ,det,det?'minor pentatonic':'major pentatonic'],
+    auto:[det?MIN:MAJ,det?MIN:MAJ,det,det?'minor':'major'], minor:[MIN,MIN,true,'minor'], major:[MAJ,MAJ,false,'major'],
+    pmin:[MIN,PMIN,true,'minor pentatonic'], pmaj:[MAJ,PMAJ,false,'major pentatonic'], dorian:[DOR,DOR,true,'dorian'], phrygian:[PHR,PHR,true,'phrygian']};
+  const [parent,melody,minor,name]=table[sc];
+  return {root, parent, melody, minor, name:NOTES[root]+' '+name};
+}
+// Everything a note needs to pick its pitch and chop: the scale notes in range, the
+// chords, and a small palette of chops so a pattern has a consistent voice.
+function buildContext(){
+  const key=resolveKey(), center=S.track.center, range=v('pitch');
+  const inScale=m=>key.melody.includes((((m-key.root)%12)+12)%12);
+  let notes=[]; for(let m=center-range;m<=center+range;m++) if(inScale(m)) notes.push(m);
+  if(!notes.length){ let m=center; while(!inScale(m)) m++; notes=[m]; }
+  const enabled=[...S.enabled], loud=enabled.filter(i=>!S.chops[i].quiet), pool=loud.length?loud:enabled;
+  const pitched=pool.filter(i=>S.chops[i].midi!=null);
+  // chops already close to the melody need the least pitch shifting, so they stay the most natural
+  const near=pitched.filter(i=>Math.abs(S.chops[i].midi-center)<=range+5);
+  const cand=near.length>=3?near:pitched.length>=3?pitched:pool;
+  const palette=[...cand].sort(()=>Math.random()-0.5).slice(0,3+Math.floor(Math.random()*4));
+  const prog=pick(PROGS[key.minor?'minor':'major']);
+  const bars=v('bars'), chordLen=bars===1?8:16, chordCount=bars===4?4:2;
+  const degs=d=>[0,2,4].map(k=>(key.root+key.parent[(d+k)%7])%12);
+  const padChop=[...palette].sort((a,b)=>(S.chops[b].e-S.chops[b].s)-(S.chops[a].e-S.chops[a].s))[0];
+  return {key, center, notes, pool, palette, bars, chordLen, chordCount, prog, degs, padChop, byTarget:new Map(), lastChop:-1};
+}
+const chordAt=(G,g)=>G.degs(G.prog[Math.floor(g/G.chordLen)%G.chordCount]);
+const nearestIdx=(G,m)=>{ let b=0; G.notes.forEach((n,i)=>{ if(Math.abs(n-m)<Math.abs(G.notes[b]-m)) b=i; }); return b; };
+function snapTo(G,idx,pcs){
+  for(let d=0;d<G.notes.length;d++) for(const s of [idx-d,idx+d]) if(G.notes[s]!==undefined && pcs.includes(((G.notes[s]%12)+12)%12)) return s;
+  return idx;
+}
+function bounce(G,i){
+  const n=G.notes.length; if(n<2) return 0;
+  const p=2*(n-1), m=((i%p)+p)%p;
+  return m<n?m:p-m;
+}
+// Same note, same chop most of the time: repeated syllables are what make a chop sound like a hook.
+function chopFor(G,target){
+  const prior=G.byTarget.get(target);
+  if(prior!==undefined && !chance(25)) return prior;
+  const score=i=>{ const m=S.chops[i].midi ?? G.center; return Math.abs(m-target)+Math.random()*3+(i===G.lastChop?2:0); };
+  const best=[...G.palette].sort((a,b)=>score(a)-score(b))[0];
+  G.byTarget.set(target,best); return best;
+}
+function setTarget(cell,G,target){
+  const chop=chopFor(G,target); G.lastChop=chop;
+  cell.target=target; cell.chop=chop; cell.semi=foldSemi(target-(S.chops[chop].midi ?? G.center));
 }
 function glideRoll(){
-  if(Math.random()>=v('gChance')/100) return {glide:null, glideSemi:0};
-  if(Math.random()<0.3) return {glide:'stop', glideSemi:0};
-  const up=Math.random()<0.5, semi=Math.max(1, Math.round(Math.random()*v('gRange')));
+  if(!chance(v('gChance'))) return {glide:null, glideSemi:0};
+  if(chance(30)) return {glide:'stop', glideSemi:0};
+  const up=chance(50), semi=Math.max(1, Math.round(Math.random()*v('gRange')));
   return {glide:up?'up':'down', glideSemi:up?semi:-semi};
 }
+function makeNote(G,g,len,target,o={}){
+  const chaos=v('chaos'), cell={g, len, rest:false, ratchet:1, rev:false, detune:0, slide:0, harm:0,
+    vel:g%8===0?0.95:g%4===0?0.86:0.76,
+    // raw randoms scaled live by the FX rack sliders, so moving a slider reshapes the current pattern
+    cut:Math.random()*2-1, pan:Math.random()*2-1, crush:chance(v('cChance')), ...glideRoll()};
+  setTarget(cell,G,target);
+  if(chance(chaos)){
+    cell.chop=pick(G.pool);
+    if(chance(50)){ cell.target=pick(G.notes); }
+    cell.semi=foldSemi(cell.target-(S.chops[cell.chop].midi ?? G.center));
+    if(chaos>60 && chance(40)) cell.detune=(Math.random()*2-1)*1.5;
+  }
+  if(o.roll) cell.ratchet=len>=2?4:3;
+  else if(len<=4 && chance(v('stutter')*(o.barEnd?1.6:0.5)+chaos*0.2)) cell.ratchet=pick([2,2,3,4]);
+  if(cell.ratchet===1 && len>=2 && g%16!==0 && chance(v('reverse')+chaos*0.2)) cell.rev=true;
+  if(cell.ratchet===1 && !cell.rev){
+    if(o.prev!==undefined && len>=2 && chance(v('slide'))){ const d=o.prev-cell.target; if(d && Math.abs(d)<=7) cell.slide=d; }
+    if(len>=3 && chance(v('harm'))){ const i=nearestIdx(G,cell.target), h=G.notes[i-2]??G.notes[i+2]; if(h!==undefined && h!==cell.target) cell.harm=h-cell.target; }
+  }
+  return cell;
+}
+
+/* ---------- pattern generation: a motif over a chord progression, on a fixed bar grid ---------- */
 function genPattern(){
   if(!S.enabled.size){ toast('Turn on at least one slice ●'); return false; }
-  S.range=Math.max(1,v('pitch'));
-  S.pattern=Array.from({length:v('steps')}, genStep);
-  S.pattern[0].rest=false;
+  const G=buildContext(), groove=GROOVES[$('#groove').value], A=pick(groove.r);
+  const others=groove.r.filter(r=>r!==A), B=others.length?pick(others):A;
+  const seq=G.bars===4?[A,A,A,B]:G.bars===2?[A,B]:[A];
+  const dir=chance(65)?1:-1, motif=[0], cells=[];
+  const motifAt=(k,n)=>{
+    while(motif.length<=k){
+      const step=pick([0,1,1,1,1,1,2,2,2,3]), sign=(motif.length<n*0.6?dir:-dir)*(chance(15)?-1:1);
+      motif.push(motif[motif.length-1]+sign*step);
+    }
+    return motif[k];
+  };
+  let cur=nearestIdx(G,G.center), prev;
+  seq.forEach((rhythm,b)=>{
+    const ev=parseRhythm(rhythm), notes=ev.filter(e=>!e.rest), first=snapTo(G,cur,chordAt(G,b*16));
+    let k=0;
+    for(const e of ev){
+      const g=b*16+e.s;
+      if(e.rest){ cells.push({g, len:e.len, rest:true, chop:0, target:G.center, semi:0, ratchet:1, cut:0, pan:0}); continue; }
+      const isLast=k===notes.length-1;
+      let idx=bounce(G, first+motifAt(k,notes.length));
+      if(k>0 && e.s%8===0) idx=snapTo(G,idx,chordAt(G,g));   // strong beats land on chord tones
+      else if(k>0 && chance(12)) idx=bounce(G,idx+pick([-1,1]));
+      if(isLast) idx=snapTo(G,idx, b===seq.length-1 ? [G.key.root] : chordAt(G,g)); // the phrase comes home at the end
+      const cell=makeNote(G,g,e.len,G.notes[idx],{roll:e.roll, barEnd:isLast, prev});
+      // rests only ever replace off-beat notes, so the groove keeps its backbone
+      if(e.s%4!==0 && chance(v('rest'))) cell.rest=true;
+      cells.push(cell);
+      cur=idx; prev=cell.rest?undefined:cell.target; k++;
+    }
+  });
+  if(cells[0] && !cells[0].rest && cells[0].ratchet>1 && G.bars>1) cells[0].ratchet=1;
+  S.pattern=cells; S.gen=G; S.total=G.bars*16;
+  S.cellAt={}; cells.forEach((c,i)=>S.cellAt[c.g]=i);
+  S.padAt={}; S.drums={};
+  for(let g=0;g<S.total;g+=G.chordLen){
+    const pcs=chordAt(G,g), base=G.center-7, midis=[];
+    let m=base; while(((m%12)+12)%12!==pcs[0]) m++;
+    midis.push(m);
+    for(const pc of [pcs[1],pcs[2]]){ let n=midis[midis.length-1]+1; while(((n%12)+12)%12!==pc) n++; midis.push(n); }
+    S.padAt[g]={midis, len:G.chordLen, chop:G.padChop};
+  }
+  for(let g=0;g<S.total;g++){
+    const i=g%16, hits=(groove.k[i]==='x'?'k':'')+(groove.s[i]==='x'?'s':'')+(groove.h[i]==='x'?'h':'');
+    if(hits) S.drums[g]=hits;
+  }
   renderStrip(); return true;
+}
+function rerollCell(cell){
+  if(!S.chops.length) return;
+  const G=S.gen, i=nearestIdx(G,cell.target);
+  const wasRest=cell.rest;
+  Object.assign(cell, wasRest ? makeNote(G,cell.g,cell.len,G.notes[bounce(G,i)]) : {});
+  if(!wasRest) setTarget(cell,G,G.notes[bounce(G,i+pick([-2,-1,1,2]))]);
 }
 function mutate(){
   if(!S.pattern.length){ genPattern(); return; }
-  S.pattern=S.pattern.map(st=>Math.random()<0.33?genStep():st); renderStrip();
+  S.pattern.forEach(c=>{ if(!c.rest && chance(33)) rerollCell(c); }); renderStrip();
+}
+function patInfo(){
+  if(!S.gen) return;
+  $('#patInfo').textContent=`${S.gen.key.name} · ${S.gen.bars} bar${S.gen.bars>1?'s':''} · ${(S.total*sixteenth()).toFixed(2)} s`;
 }
 function renderStrip(){
-  const box=$('#strip'); box.innerHTML='';
+  const box=$('#strip'), G=S.gen, span=Math.max(1,v('pitch')); box.innerHTML='';
+  box.style.minWidth=Math.max(480,S.total*22)+'px';
   S.pattern.forEach((st,i)=>{
     const ch=S.chops[st.chop], el=document.createElement('div');
-    el.className='cell'+(st.rest?' rest':''); el.dataset.i=i; el.style.flexGrow=st.len; el.title='Click to re-roll this step';
+    el.className='cell'+(st.rest?' rest':''); el.dataset.i=i; el.style.flexGrow=st.len; el.title='Click to re-roll this note';
     el.style.setProperty('--c', ch?ch.color:'var(--muted)');
-    const y=50 - (st.semi/S.range)*40;
-    const semiTxt = st.semi===0 ? '0' : (st.semi>0?'+':'')+(Number.isInteger(st.semi)?st.semi:st.semi.toFixed(1));
+    const y=Math.max(12,Math.min(84, 50-(st.target-G.center)/span*36));
     el.innerHTML = `<div class="mid"></div>` + (st.rest ? '' : `<div class="blk" style="top:calc(${y}% - 7px);${st.rev?'background:repeating-linear-gradient(135deg,var(--c) 0 4px,transparent 4px 7px)':''}"></div>`)
       + (st.ratchet>1&&!st.rest ? `<span class="rat">×${st.ratchet}</span>` : '')
-      + (st.rest ? '' : `<span class="fl">${st.crush?'#':''}${st.glide==='stop'?'⏹':st.glide==='up'?'↗':st.glide==='down'?'↘':''}</span>`)
-      + `<span class="tag">${st.rest?'rest':(st.chop+1)+(st.rev?'◂':'')+' '+semiTxt}</span>`;
+      + (st.rest ? '' : `<span class="fl">${st.crush?'#':''}${st.slide?'~':''}${st.harm?'+':''}${st.glide==='stop'?'⏹':st.glide==='up'?'↗':st.glide==='down'?'↘':''}</span>`)
+      + `<span class="tag">${st.rest?'':noteName(Math.round(st.target))}${st.rev?'◂':''}</span>`;
     box.appendChild(el);
   });
-  const loop=S.pattern.reduce((a,s)=>a+stepDur(s),0);
-  $('#patInfo').textContent=`${S.pattern.length} steps · ${loop.toFixed(2)} s loop`;
+  patInfo();
 }
 $('#strip').addEventListener('click', e=>{
   const c=e.target.closest('.cell'); if(!c) return;
-  S.pattern[+c.dataset.i]=genStep(); renderStrip();
+  rerollCell(S.pattern[+c.dataset.i]); renderStrip();
 });
 
 /* ---------- waveform ---------- */
@@ -744,13 +1098,19 @@ async function offer(base, files){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=files.length===1?files[0].name:base+'.zip';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
+async function renderLoops(loops){
+  const sd=sixteenth(), total=loops*S.total*sd+Math.max(3, v('release')/1000+2.6);
+  const oc=new OfflineAudioContext(2, Math.ceil(total*44100), 44100), fx=makeFX(oc);
+  for(let l=0;l<loops;l++) for(let g=0;g<S.total;g++) scheduleGrid(oc, fx, (l*S.total+g)*sd, g, false);
+  const out=await oc.startRendering();
+  let pk=0; for(let c=0;c<2;c++){ const d=out.getChannelData(c); for(let i=0;i<d.length;i++){ const q=Math.abs(d[i]); if(q>pk) pk=q; } }
+  if(pk>0) for(let c=0;c<2;c++){ const d=out.getChannelData(c), k=0.95/pk; for(let i=0;i<d.length;i++) d[i]*=k; }
+  return out;
+}
 $('#expMel').addEventListener('click', async ()=>{
   if(!S.buffer) return; if(!S.pattern.length && !genPattern()) return;
   toast('Rendering…');
-  const loops=v('loops'), pd=S.pattern.reduce((a,s)=>a+stepDur(s),0), total=loops*pd+(v('echo')>0?2:0.3);
-  const oc=new OfflineAudioContext(2, Math.ceil(total*44100), 44100), fx=makeFX(oc);
-  let t=0; for(let l=0;l<loops;l++) for(const st of S.pattern) t+=scheduleStep(oc, fx.input, t, st, false);
-  const out=await oc.startRendering();
+  const out=await renderLoops(v('loops'));
   await offer('glitch-melody', [{name:'glitch-melody.wav', data:wavBytes(out)}]);
 });
 $('#expChops').addEventListener('click', async ()=>{
@@ -761,39 +1121,56 @@ $('#expChops').addEventListener('click', async ()=>{
 });
 
 /* ---------- controls ---------- */
-const FMT={bpm:x=>(+x).toFixed(1), offset:x=>x+' ms', sens:x=>x+'%', gap:x=>x+' ms', minNote:x=>x+' ms', slices:x=>x,
-  playBpm:x=>x+' bpm', pitch:x=>'±'+x+' st', speed:x=>x+'%', stutter:x=>x+'%', reverse:x=>x+'%', rest:x=>x+'%', gate:x=>x+'%', echo:x=>x+'%',
-  fCut:()=>{ const f=cutoffHz(); return f>=1000?(f/1000).toFixed(1)+' k':Math.round(f)+' Hz'; }, fQ:x=>'Q '+x, fRand:x=>x+'%', fSweep:x=>x+'%',
-  cBits:x=>x+' bit', cRate:x=>'÷'+x, cChance:x=>x+'%', gChance:x=>x+'%', gRange:x=>'±'+x+' st', pan:x=>x+'%'};
+/* ---------- controls ---------- */
+const pct=x=>x+'%';
+const FMT={bpm:x=>(+x).toFixed(1), offset:x=>x+' ms', sens:pct, gap:x=>x+' ms', minNote:x=>x+' ms', slices:x=>x,
+  playBpm:x=>x+' bpm', swing:pct, pitch:x=>'±'+x+' st',
+  sustain:pct, release:x=>x+' ms', vib:pct, verb:pct, echo:pct, harm:pct, pad:pct, beat:pct,
+  chaos:pct, speed:pct, stutter:pct, reverse:pct, rest:pct,
+  fCut:()=>{ const f=cutoffHz(); return f>=1000?(f/1000).toFixed(1)+' k':Math.round(f)+' Hz'; }, fQ:x=>'Q '+x, fRand:pct, fSweep:pct,
+  cBits:x=>x+' bit', cRate:x=>'÷'+x, cChance:pct, gChance:pct, gRange:x=>'±'+x+' st', slide:pct, pan:pct};
 function syncOut(id){ const o=document.querySelector(`output[for="${id}"]`); if(o) o.textContent=FMT[id](document.getElementById(id).value); }
+// A vibe is a starting point: it sets the groove and sliders, and you can change anything after.
+const VIBES={
+  hook:{groove:'hook',bars:2,playBpm:104,swing:8,pitch:7,sustain:85,release:160,vib:20,verb:22,echo:15,harm:20,pad:22,beat:0,chaos:5,speed:10,stutter:12,reverse:6,rest:5,fType:'off',fCut:78,fQ:6,fRand:0,fSweep:0,cChance:0,gChance:0,gRange:12,slide:25,pan:15},
+  dream:{groove:'long',bars:4,playBpm:82,swing:0,pitch:9,sustain:100,release:650,vib:35,verb:55,echo:30,harm:40,pad:45,beat:0,chaos:0,speed:0,stutter:0,reverse:12,rest:0,fType:'off',fCut:78,fQ:6,fRand:0,fSweep:0,cChance:0,gChance:0,gRange:12,slide:40,pan:25},
+  garage:{groove:'garage',bars:2,playBpm:134,swing:35,pitch:7,sustain:55,release:90,vib:10,verb:25,echo:30,harm:10,pad:15,beat:45,chaos:12,speed:15,stutter:25,reverse:10,rest:8,fType:'off',fCut:78,fQ:6,fRand:0,fSweep:0,cChance:5,gChance:5,gRange:12,slide:15,pan:30},
+  house:{groove:'house',bars:2,playBpm:124,swing:12,pitch:5,sustain:60,release:120,vib:0,verb:20,echo:25,harm:30,pad:20,beat:55,chaos:5,speed:8,stutter:12,reverse:5,rest:0,fType:'lowpass',fCut:85,fQ:3,fRand:10,fSweep:15,cChance:0,gChance:0,gRange:12,slide:10,pan:20},
+  trap:{groove:'trap',bars:2,playBpm:72,swing:0,pitch:7,sustain:80,release:200,vib:15,verb:25,echo:20,harm:15,pad:18,beat:55,chaos:10,speed:15,stutter:35,reverse:10,rest:5,fType:'off',fCut:78,fQ:6,fRand:0,fSweep:0,cChance:5,gChance:12,gRange:12,slide:30,pan:25},
+  glitch:{groove:'hook',bars:2,playBpm:128,swing:0,pitch:12,sustain:45,release:50,vib:0,verb:15,echo:25,harm:5,pad:0,beat:0,chaos:70,speed:35,stutter:50,reverse:25,rest:15,fType:'lowpass',fCut:78,fQ:6,fRand:50,fSweep:30,cChance:30,gChance:25,gRange:12,slide:10,pan:50},
+};
+function applyVibe(name){
+  for(const [id,val] of Object.entries(VIBES[name])){ document.getElementById(id).value=val; if(FMT[id]) syncOut(id); }
+  clearCrush(); applyFX(liveFX);
+}
+function setMode(mode){
+  S.mode=mode;
+  $$('.tabs button').forEach(x=>x.setAttribute('aria-selected', x.dataset.mode===mode));
+  $$('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==mode);
+  rechop();
+}
+applyVibe('hook');
 Object.keys(FMT).forEach(syncOut);
 let rcT;
 const rechopSoon=()=>{ clearTimeout(rcT); rcT=setTimeout(rechop, S.mode==='notes'?160:40); };
-// pitch tracking a long file can take a couple of seconds; say so before the UI blocks
-const origRechop=rechop;
-rechop=function(){
-  if(S.mode==='notes' && S.buffer && S.buffer.duration>20){ toast('Tracking pitch…'); setTimeout(origRechop,30); }
-  else origRechop();
-};
 ['bpm','offset','sens','gap','minNote','slices'].forEach(id=>$('#'+id).addEventListener('input',()=>{ syncOut(id); rechopSoon(); }));
 ['sig','div','dropSil'].forEach(id=>$('#'+id).addEventListener('change',rechop));
-['pitch','speed','stutter','reverse','rest','gate','fCut','fQ','fRand','fSweep','pan'].forEach(id=>$('#'+id).addEventListener('input',()=>syncOut(id)));
-// chance sliders decide which steps get the effect, so re-roll just that property on the current pattern
-const rerollProp=(id,fn)=>$('#'+id).addEventListener('input',()=>{ syncOut(id); S.pattern.forEach(fn); if(S.pattern.length) renderStrip(); });
-rerollProp('cChance', st=>st.crush=Math.random()<v('cChance')/100);
+['swing','sustain','release','vib','harm','pad','beat','chaos','speed','stutter','reverse','rest','slide','fCut','fQ','fRand','fSweep','pan'].forEach(id=>$('#'+id).addEventListener('input',()=>syncOut(id)));
+// These change what the melody is, so they write a new one straight away.
+['key','scale','groove','bars'].forEach(id=>$('#'+id).addEventListener('change',()=>{ if(S.buffer) genPattern(); }));
+let prT;
+$('#pitch').addEventListener('input',()=>{ syncOut('pitch'); clearTimeout(prT); prT=setTimeout(()=>{ if(S.buffer) genPattern(); },120); });
+$('#vibe').addEventListener('change',e=>{ applyVibe(e.target.value); if(S.buffer) genPattern(); });
+// chance sliders decide which notes get the effect, so re-roll just that property on the current pattern
+const rerollProp=(id,fn)=>$('#'+id).addEventListener('input',()=>{ syncOut(id); S.pattern.forEach(c=>{ if(!c.rest) fn(c); }); if(S.pattern.length) renderStrip(); });
+rerollProp('cChance', st=>st.crush=chance(v('cChance')));
 rerollProp('gChance', st=>Object.assign(st, glideRoll()));
 rerollProp('gRange', st=>{ if(st.glide==='up'||st.glide==='down') Object.assign(st, glideRoll()); });
-let crT;
-['cBits','cRate'].forEach(id=>$('#'+id).addEventListener('input',()=>{ syncOut(id); clearTimeout(crT); crT=setTimeout(makeCrush,60); }));
-$('#playBpm').addEventListener('input',()=>{ syncOut('playBpm'); applyFX(liveFX); if(S.pattern.length) renderStrip(); });
-$('#echo').addEventListener('input',()=>{ syncOut('echo'); applyFX(liveFX); });
+['cBits','cRate'].forEach(id=>$('#'+id).addEventListener('input',()=>{ syncOut(id); clearCrush(); }));
+$('#playBpm').addEventListener('input',()=>{ syncOut('playBpm'); applyFX(liveFX); patInfo(); });
+['echo','verb'].forEach(id=>$('#'+id).addEventListener('input',()=>{ syncOut(id); applyFX(liveFX); }));
 $('#fit').addEventListener('click', fitBpm);
-$$('.tabs button').forEach(b=>b.addEventListener('click',()=>{
-  S.mode=b.dataset.mode;
-  $$('.tabs button').forEach(x=>x.setAttribute('aria-selected', x===b));
-  $$('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==S.mode);
-  rechop();
-}));
+$$('.tabs button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
 $('#randomize').addEventListener('click',()=>{ if(genPattern()) start(); });
 $('#play').addEventListener('click',()=>S.playing?stop():start());
 $('#mutate').addEventListener('click',mutate);
